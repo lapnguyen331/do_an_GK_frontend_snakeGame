@@ -1,14 +1,14 @@
 const blockSize= 30; // khối block -> kích thước part của rắn và map
-const gameWidth=1200; 
-const gameHeight =600;
+const gameWidth=1200; //40 khối theo chiều ngang
+const gameHeight =600;//20 khối theo chiều dọc
 /*
 * giá trị map = 0;
 *giá trị của rắn =1
 *giá trị của food = 2
 * giá trị tường  = -1
 -------size obj
--food 32px 32px
--blockSize = 32
+-food 30
+-blockSize = 30
 -------qui định game play
 -trái :a
 -phải:d
@@ -17,8 +17,8 @@ const gameHeight =600;
 */
 
 window.addEventListener("load",function(){ 
-    this.speedY = 0; //di chuyển dọc
-    this.speedX =0; //di chuyển ngang
+    this.moveY = 0; //di chuyển dọc
+    this.moveX =0; //di chuyển ngang
     this.maxSpeed = 1; //tốc độ di chuyển
     this.foodAmmount = 10;
     //canvas setup
@@ -39,25 +39,25 @@ window.addEventListener("load",function(){
     function keydown(e){
         switch(e.key){
             case 'a':
-                if(this.speedX == -maxSpeed) return;//đang đi trái
-                this.speedX = -this.maxSpeed;
-                this.speedY=0;
+                if(this.moveX == -maxSpeed) return;//đang đi trái
+                this.moveX = -this.maxSpeed;
+                this.moveY=0;
                 break;
             case 'd':
-                if(this.speedX == maxSpeed) return;//đang đi phải
-                this.speedX =this.maxSpeed
-                this.speedY =0;
+                if(this.moveX == maxSpeed) return;//đang đi phải
+                this.moveX =this.maxSpeed
+                this.moveY =0;
 
                 break;  
              case 'w':
-                if(this.speedY == -maxSpeed) return;//đang đi lên
-                this.speedY = -this.maxSpeed;
-                this.speedX=0;
+                if(this.moveY == -maxSpeed) return;//đang đi lên
+                this.moveY = -this.maxSpeed;
+                this.moveX=0;
                 break;
             case 's':
-                if(this.speedY == maxSpeed) return; //đang đi xuống
-                this.speedY =maxSpeed;
-                this.speedX =0;
+                if(this.moveY == maxSpeed) return; //đang đi xuống
+                this.moveY =maxSpeed;
+                this.moveX =0;
                 break;  
         }
     }  
@@ -106,8 +106,8 @@ window.addEventListener("load",function(){
         }
         //update sau khi press key
         update(){
-            this.heady += speedY;
-            this.headx += speedX;
+            this.heady += moveY;
+            this.headx += moveX;
         };
         // vẽ player
         draw(context){
@@ -173,6 +173,10 @@ window.addEventListener("load",function(){
             }
         }
         drawMap(context){
+            this.drawBorder(context);
+
+        }
+        drawBorder(context){
             context.strokeStyle  ="white"; //màu viền border
             context.fillStyle='gray'//màu của border
             context.lineWidth = 2; //độ dày viền
