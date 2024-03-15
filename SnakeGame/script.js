@@ -1,6 +1,13 @@
 const blockSize= 30; // khối block -> kích thước part của rắn và map
 const gameWidth=1200; //40 khối theo chiều ngang
 const gameHeight =600;//20 khối theo chiều dọc
+const xStep = gameWidth/blockSize;
+const yStep = gameHeight/blockSize;
+this.maxSpeed = 10; //tốc độ di chuyển theo k số block
+this.foodAmmount = 10;
+var tailLength =1; //gồm đầu, chiều dài rắn
+
+
 /*
 * giá trị map = 0;
 *giá trị của rắn =1
@@ -19,8 +26,6 @@ const gameHeight =600;//20 khối theo chiều dọc
 window.addEventListener("load",function(){ 
     this.moveY = 0; //di chuyển dọc
     this.moveX =0; //di chuyển ngang
-    this.maxSpeed = 1; //tốc độ di chuyển
-    this.foodAmmount = 10;
     //canvas setup
     const canvas = this.document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -39,24 +44,24 @@ window.addEventListener("load",function(){
     function keydown(e){
         switch(e.key){
             case 'a':
-                if(this.moveX == -maxSpeed) return;//đang đi trái
-                this.moveX = -this.maxSpeed;
+                if(this.moveX == -blockSize) return;//đang đi trái
+                this.moveX = -blockSize;
                 this.moveY=0;
                 break;
             case 'd':
-                if(this.moveX == maxSpeed) return;//đang đi phải
-                this.moveX =this.maxSpeed
+                if(this.moveX == blockSize) return;//đang đi phải
+                this.moveX =blockSize
                 this.moveY =0;
 
                 break;  
              case 'w':
-                if(this.moveY == -maxSpeed) return;//đang đi lên
-                this.moveY = -this.maxSpeed;
+                if(this.moveY == -blockSize) return;//đang đi lên
+                this.moveY = -blockSize;
                 this.moveX=0;
                 break;
             case 's':
-                if(this.moveY == maxSpeed) return; //đang đi xuống
-                this.moveY =maxSpeed;
+                if(this.moveY == blockSize) return; //đang đi xuống
+                this.moveY =blockSize;
                 this.moveX =0;
                 break;  
         }
@@ -75,6 +80,10 @@ window.addEventListener("load",function(){
             context.fillStyle = "red";
             context.fillRect(this.x,this.y,blockSize,blockSize);
         }
+        setLocation(newX,newY){
+            this.x=newX;
+            this.y= newY;
+        }
 
     }
     class BodyPart{
@@ -91,16 +100,21 @@ window.addEventListener("load",function(){
             //     this.url=null;
             // }
         }
+        
     }
+    
+
     //người chơi 'snake'
     class Player{
         constructor(game){
             this.game = game;
-            this.headx =20*blockSize;
-            this.heady =100;
+            this.headx =5*blockSize;//startgame
+            this.heady =5*blockSize;//startgame
             this.body =[];
-            this.body.push(new BodyPart(this.headx -blockSize,this.heady,blockSize,blockSize,2,true)) //đuôi
-            this.tailLength =2; //gồm đầu và đuôi
+            this.body.push(new BodyPart(this.headx -blockSize,this.heady,blockSize,blockSize,1,true)) //tính đầu là 0 nên đánh số từ 1
+            this.body.push(new BodyPart(this.headx -(this.tailLength)*blockSize,this.heady,this.tailLength +1,false)) //thêm thân part vào trong danh sách
+            this.tailLength++; //gồm đầu và đuôi
+
             //tốc độ 
             
         }
@@ -110,23 +124,24 @@ window.addEventListener("load",function(){
             this.headx += moveX;
         };
         // vẽ player
-        draw(context){
-            context.fillStyle = "green";
+        drawSnake(context){
+            context.fillStyle = "green";//đầu
             context.fillRect(this.headx,this.heady,blockSize,blockSize);
-            // context.fillStyle='orange'
-            // if(this.body.length != 0){
-            //     for(let i =1 ; i < this.body.length ; i++){
-            //         let part = this.body[i];
-            //         context.fillRect(part.x,part.y,blockSize,blockSize);
-            //         // console.log("thân");
-            //     }
-            // }
-            // this.body.push(new BodyPart(this.headx +(this.tailLength-1*blockSize),this.heady,false)) //thêm part vào trong danh sách
-            // this.tailLength++;
-            // if(this.body.length > this.tailLength){
-            //     this.body.shift();// xóa nếu dài hơn tổng chiều dài
-            // }
-            // console.log(this.body);
+            this.drawBody(context)
+        }
+        drawBody(context){
+            context.fillStyle='orange'; //thân
+            if(this.body.length != 0){
+                for(let i =1; i < this.body.length ; i++){
+                    let part = this.body[i];
+                    context.fillRect(this.headx +i*blockSize,this.heady + i*blockSize,blockSize,blockSize);
+                    // console.log("thân");
+                }
+            }
+            if(this.body.length > this.tailLength){
+                this.body.shift();// xóa nếu dài hơn tổng chiều dài
+            }
+            console.log(this.body);
 
         }
 
@@ -165,17 +180,26 @@ window.addEventListener("load",function(){
         //vẽ game
         drawPlayer(context){
             // this.drawMap();
-            this.player.draw(context)
+            this.player.drawSnake(context)
         }
         drawFood(context){
             for(let i = 0; i < this.food.length; i++){
                 this.food[i].draw(context);
             }
         }
+       
         drawMap(context){
-            this.drawBorder(context);
+            context.strokeStyle ='red';
+            context.lineWidth = 2; //độ dày viền
 
+            for(let i =1; i< xStep-1;i++){
+                // context.strokeRect(i*blockSize,0,blockSize,blockSize) //theo xAsis
+                for(let j =1 ; j< yStep-1; j++){
+                    context.strokeRect(i*blockSize,j*blockSize,blockSize,blockSize) //theo yAsis
+                }
+            }
         }
+
         drawBorder(context){
             context.strokeStyle  ="white"; //màu viền border
             context.fillStyle='gray'//màu của border
@@ -192,7 +216,7 @@ window.addEventListener("load",function(){
                 x += blockSize;
             }
             x=0; //reset biến x
-            for(let k =0 ; k <yBorderAmmount ; k++){
+            for(let k =0 ; k <yStep ; k++){
                 context.strokeRect(0,x,blockSize,blockSize) //border trái
                 context.strokeRect(gameWidth - blockSize,x,blockSize,blockSize) //border phải
 
@@ -201,44 +225,21 @@ window.addEventListener("load",function(){
                 x += blockSize;
             }
         }
+        createMap(context){
+            this.drawBorder(context);
+            this.drawMap(context); 
+        }
         checkFoodColision(game){
-            // console.log(game.food);
-            game.food.forEach(element => {
+            
+            game.food.forEach(function (element){
                 if((game.player.headx == element.x) &&(game.player.heady == element.y)){
-                    // this.tailLength++;
-                    console.log('ăn');
-
-                    console.log(this.tailLength);
+                    tailLength++;
+                    element.setLocation(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize);
+                    console.log(tailLength);
                 }
             });
-            // console.log(tailLength);
         }
-        // vẽ map
-        // drawMap(){
-        //     // this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
-        //     this.ctx.lineWidth = 2;
-        //     this.ctx.rect(0,0,blockSize*this.mapWidth,blockSize*this.mapHeight) //
-        //     this.ctx.stroke();
-        //     //lặp qua các phần tử và vẽ các block tại đúng vị trí
-        //     for (let i = 0; i < this.mapHeight; i++) {
-        //         for (let j = 0; j < this.mapWidth; j++) {
-        //         if (this.currentMap[i][j] > 0) {
-        //             this.ctx.fillStyle = 'rgb(0, 0, 0)'
-        //         } else {
-        //             this.ctx.fillStyle = 'rgb(248, 248, 248)'
-        //         }
-        //         this.ctx.fillRect(padding*2+j*(blockSize+padding), padding*2+(i-3)*(blockSize+padding), blockSize, blockSize)
-        //         }
-        //     }
-        //     // viết ra các đoạn số 
-        //     /* Viết ra các đoạn text */
-        //     this.ctx.fillStyle = 'rgb(0, 0, 0)'
-        //     this.ctx.font = '28px';
-        //     this.ctx.fillText('TIẾP THEO:', 300, 28)
-        //     this.ctx.fillText('ĐIỂM SỐ:', 300, 200)
-        //     this.ctx.fillText(this.score.toString(), 300, 230)
-        //     console.log("hehe");
-        // }
+       
 
     }
     
@@ -246,11 +247,11 @@ window.addEventListener("load",function(){
     // function hỗ trợ
     function createFood(ammount){ //tạo food
         if(ammount ===1) {
-            return [new Food(genRandom(10,gameWidth-20),genRandom(10,gameHeight-20))]
+            return [new Food(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize)]
         }else{
             let em =[];
             for(let j = 0 ; j < ammount;j++){
-                em.push(new Food(genRandom(10,gameWidth-20),genRandom(10,gameHeight-20)));
+                em.push(new Food(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize));
             }
             return em;
         }
@@ -262,15 +263,16 @@ window.addEventListener("load",function(){
     //luồng game
     function animate(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        game.drawMap(ctx)
+        game.createMap(ctx)
         game.drawFood(ctx);
 
         game.drawPlayer(ctx);
+        // setTimeout(1000/maxSpeed)
         game.update();
         game.checkFoodColision(game);
 
         // game.player.update()
-        requestAnimationFrame(animate);
+        setTimeout(animate,1000/maxSpeed);
     }
     animate();
     // game.drawMap();
