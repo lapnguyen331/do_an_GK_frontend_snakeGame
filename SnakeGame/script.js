@@ -1,6 +1,6 @@
-const blockSize= 32; // khối block -> kích thước part của rắn và map
-const gameWidth='1200'; 
-const gameHeight ='600';
+const blockSize= 30; // khối block -> kích thước part của rắn và map
+const gameWidth=1200; 
+const gameHeight =600;
 /*
 * giá trị map = 0;
 *giá trị của rắn =1
@@ -19,8 +19,8 @@ const gameHeight ='600';
 window.addEventListener("load",function(){ 
     this.speedY = 0; //di chuyển dọc
     this.speedX =0; //di chuyển ngang
-    this.maxSpeed = 3; //tốc độ di chuyển
-    this.foodAmmount = 100;
+    this.maxSpeed = 1; //tốc độ di chuyển
+    this.foodAmmount = 10;
     //canvas setup
     const canvas = this.document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -42,27 +42,22 @@ window.addEventListener("load",function(){
                 if(this.speedX == -maxSpeed) return;//đang đi trái
                 this.speedX = -this.maxSpeed;
                 this.speedY=0;
-                console.log("1"+ this.speedX);
-                
                 break;
             case 'd':
                 if(this.speedX == maxSpeed) return;//đang đi phải
                 this.speedX =this.maxSpeed
                 this.speedY =0;
-                console.log("2");
 
                 break;  
              case 'w':
                 if(this.speedY == -maxSpeed) return;//đang đi lên
                 this.speedY = -this.maxSpeed;
                 this.speedX=0;
-                console.log("3");
                 break;
             case 's':
                 if(this.speedY == maxSpeed) return; //đang đi xuống
                 this.speedY =maxSpeed;
                 this.speedX =0;
-                console.log("4");
                 break;  
         }
     }  
@@ -79,14 +74,14 @@ window.addEventListener("load",function(){
         draw(context){
             context.fillStyle = "red";
             context.fillRect(this.x,this.y,blockSize,blockSize);
-            console.log("food");
         }
 
     }
     class BodyPart{
-        constructor(x,y,bool){
+        constructor(x,y,index,bool){
             this.x=x;
             this.y=y;
+            this.index = index; 
             // if(bool){
             //     console.log('đuôi');
             //     this.url=null;
@@ -101,9 +96,10 @@ window.addEventListener("load",function(){
     class Player{
         constructor(game){
             this.game = game;
-            this.headx =20;
+            this.headx =20*blockSize;
             this.heady =100;
             this.body =[];
+            this.body.push(new BodyPart(this.headx -blockSize,this.heady,blockSize,blockSize,2,true)) //đuôi
             this.tailLength =2; //gồm đầu và đuôi
             //tốc độ 
             
@@ -115,18 +111,22 @@ window.addEventListener("load",function(){
         };
         // vẽ player
         draw(context){
-            context.fillStyle = "black";
-            if(this.body.length != 0){
-                for(let i =0 ; i < this.body.length ; i++){
-                    let part = this.body[i];
-                    context.fillRect(part.x * blockSize,part.y*blockSize,blockSize,blockSize);
-                }
-            }
-            this.body.push(new BodyPart(this.headx,this.heady-1,false)) //thêm part vào trong danh sách
-            if(this.body.length > this.tailLength){
-                this.body.shift();// xóa nếu dài hơn tổng chiều dài
-            }
+            context.fillStyle = "green";
             context.fillRect(this.headx,this.heady,blockSize,blockSize);
+            // context.fillStyle='orange'
+            // if(this.body.length != 0){
+            //     for(let i =1 ; i < this.body.length ; i++){
+            //         let part = this.body[i];
+            //         context.fillRect(part.x,part.y,blockSize,blockSize);
+            //         // console.log("thân");
+            //     }
+            // }
+            // this.body.push(new BodyPart(this.headx +(this.tailLength-1*blockSize),this.heady,false)) //thêm part vào trong danh sách
+            // this.tailLength++;
+            // if(this.body.length > this.tailLength){
+            //     this.body.shift();// xóa nếu dài hơn tổng chiều dài
+            // }
+            // console.log(this.body);
 
         }
 
@@ -152,25 +152,18 @@ window.addEventListener("load",function(){
     class Game{
         constructor(width,height){
             this.score = 0; //điểm 
-            this.padding=blockSize;
-            this.mapWidth = width;
-            this.mapHeight=height;
-            this.currentMap =  new Array(this.boardHeight).fill(0).map(() => new Array(this.boardWidth).fill(0));
-            this.landedMap = new Array(this.boardHeight).fill(0).map(() => new Array(this.boardWidth).fill(0));
-
+            this.fence= null;
             this.player= new Player(this);
             this.inputHandle = new InputHandle(this);
             this.food = createFood(foodAmmount); // danh sách thức ăn
         }
         //update UI game
         update(){
-            // this.player.speedX = 0;
-            // this.player.speedY=0;
-            
+            // console.log('update');
             this.player.update();
         }
         //vẽ game
-        draw(context){
+        drawPlayer(context){
             // this.drawMap();
             this.player.draw(context)
         }
@@ -178,6 +171,43 @@ window.addEventListener("load",function(){
             for(let i = 0; i < this.food.length; i++){
                 this.food[i].draw(context);
             }
+        }
+        drawMap(context){
+            context.strokeStyle  ="white"; //màu viền border
+            context.fillStyle='gray'//màu của border
+            context.lineWidth = 2; //độ dày viền
+            var x =0;
+            var xBorderAmmount = gameWidth/blockSize;
+            var yBorderAmmount = gameHeight/blockSize;
+            for(let k = 0 ; k < xBorderAmmount;k++){
+                context.strokeRect(x,0,blockSize,blockSize) //border trên
+                context.strokeRect(x,gameHeight - blockSize,blockSize,blockSize) //border dưới
+
+                context.fillRect(x,0,blockSize,blockSize) //border trên
+                context.fillRect(x,gameHeight - blockSize,blockSize,blockSize) //border dưới
+                x += blockSize;
+            }
+            x=0; //reset biến x
+            for(let k =0 ; k <yBorderAmmount ; k++){
+                context.strokeRect(0,x,blockSize,blockSize) //border trái
+                context.strokeRect(gameWidth - blockSize,x,blockSize,blockSize) //border phải
+
+                context.fillRect(0,x,blockSize,blockSize) //border trái
+                context.fillRect(gameWidth-blockSize,x,gameHeight - blockSize,blockSize,blockSize) //border phải
+                x += blockSize;
+            }
+        }
+        checkFoodColision(game){
+            // console.log(game.food);
+            game.food.forEach(element => {
+                if((game.player.headx == element.x) &&(game.player.heady == element.y)){
+                    // this.tailLength++;
+                    console.log('ăn');
+
+                    console.log(this.tailLength);
+                }
+            });
+            // console.log(tailLength);
         }
         // vẽ map
         // drawMap(){
@@ -210,7 +240,7 @@ window.addEventListener("load",function(){
     
     const game = new Game(canvas.width,canvas.height);
     // function hỗ trợ
-    function createFood(ammount){
+    function createFood(ammount){ //tạo food
         if(ammount ===1) {
             return [new Food(genRandom(10,gameWidth-20),genRandom(10,gameHeight-20))]
         }else{
@@ -218,20 +248,23 @@ window.addEventListener("load",function(){
             for(let j = 0 ; j < ammount;j++){
                 em.push(new Food(genRandom(10,gameWidth-20),genRandom(10,gameHeight-20)));
             }
-            console.log(em);
             return em;
         }
     }
+
     function genRandom(min, max){
         return Math.floor(Math.random() * (max - min)) + min;
     }
     //luồng game
     function animate(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        
-        game.update();
+        game.drawMap(ctx)
         game.drawFood(ctx);
-        game.draw(ctx);
+
+        game.drawPlayer(ctx);
+        game.update();
+        game.checkFoodColision(game);
+
         // game.player.update()
         requestAnimationFrame(animate);
     }
