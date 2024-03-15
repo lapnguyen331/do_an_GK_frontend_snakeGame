@@ -5,7 +5,7 @@ const xStep = gameWidth/blockSize;
 const yStep = gameHeight/blockSize;
 this.maxSpeed = 10; //tốc độ di chuyển theo k số block
 this.foodAmmount = 10;
-var tailLength =1; //gồm đầu, chiều dài rắn
+let tailLength =1; //gồm đầu, chiều dài rắn
 
 
 /*
@@ -87,18 +87,11 @@ window.addEventListener("load",function(){
 
     }
     class BodyPart{
-        constructor(x,y,index,bool){
+        constructor(x,y,index){
             this.x=x;
             this.y=y;
-            this.index = index; 
-            // if(bool){
-            //     console.log('đuôi');
-            //     this.url=null;
-            // }
-            // else{
-            //     console.log('ko đuôi');
-            //     this.url=null;
-            // }
+            this.index = index;
+            
         }
         
     }
@@ -108,12 +101,10 @@ window.addEventListener("load",function(){
     class Player{
         constructor(game){
             this.game = game;
-            this.headx =5*blockSize;//startgame
+            this.headx =5*blockSize ;//startgame
             this.heady =5*blockSize;//startgame
-            this.body =[];
-            this.body.push(new BodyPart(this.headx -blockSize,this.heady,blockSize,blockSize,1,true)) //tính đầu là 0 nên đánh số từ 1
-            this.body.push(new BodyPart(this.headx -(this.tailLength)*blockSize,this.heady,this.tailLength +1,false)) //thêm thân part vào trong danh sách
-            this.tailLength++; //gồm đầu và đuôi
+            var em = new BodyPart(this.headx,this.heady,0)
+            this.body =[em];
 
             //tốc độ 
             
@@ -123,22 +114,24 @@ window.addEventListener("load",function(){
             this.heady += moveY;
             this.headx += moveX;
         };
-        // vẽ player
+        //vẽ player
         drawSnake(context){
             context.fillStyle = "green";//đầu
             context.fillRect(this.headx,this.heady,blockSize,blockSize);
             this.drawBody(context)
         }
         drawBody(context){
-            context.fillStyle='orange'; //thân
+            context.fillStyle='aqua'; //thân
+            context.strokeStyle='black'
             if(this.body.length != 0){
                 for(let i =1; i < this.body.length ; i++){
                     let part = this.body[i];
-                    context.fillRect(this.headx +i*blockSize,this.heady + i*blockSize,blockSize,blockSize);
-                    // console.log("thân");
+                    context.fillRect(part.x,part.y,blockSize,blockSize);
+                    context.strokeRect(part.x,part.y,blockSize,blockSize)
                 }
             }
-            if(this.body.length > this.tailLength){
+            this.body.push(new BodyPart(this.headx,this.heady,tailLength))
+            if(this.body.length > tailLength){
                 this.body.shift();// xóa nếu dài hơn tổng chiều dài
             }
             console.log(this.body);
@@ -244,14 +237,13 @@ window.addEventListener("load",function(){
             if(gp.headx == 0 || gp.headx == (xStep-1)*blockSize || gp.heady == 0 || gp.heady == (yStep-1)*blockSize ){
                 game.finish();
             }
+            // NOTE: kiểm tra cắn body
+            //NOTE : kiểm tra đụng tường di động
         }
+        // hàm kiểm tra kết thúc game
         finish(){
             this.isfinish= true;
-
         }
-        
-       
-
     }
     
     const game = new Game(canvas.width,canvas.height);
