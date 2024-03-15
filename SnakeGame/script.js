@@ -171,6 +171,7 @@ window.addEventListener("load",function(){
             this.player= new Player(this);
             this.inputHandle = new InputHandle(this);
             this.food = createFood(foodAmmount); // danh sách thức ăn
+            this.isfinish = true;
         }
         //update UI game
         update(){
@@ -230,15 +231,25 @@ window.addEventListener("load",function(){
             this.drawMap(context); 
         }
         checkFoodColision(game){
-            
             game.food.forEach(function (element){
                 if((game.player.headx == element.x) &&(game.player.heady == element.y)){
                     tailLength++;
                     element.setLocation(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize);
-                    console.log(tailLength);
                 }
             });
         }
+        checkCollision(game){//border + snake body
+            // kiểm tra đụng border
+            var gp = game.player
+            if(gp.headx == 0 || gp.headx == (xStep-1)*blockSize || gp.heady == 0 || gp.heady == (yStep-1)*blockSize ){
+                game.finish();
+            }
+        }
+        finish(){
+            this.isfinish= true;
+
+        }
+        
        
 
     }
@@ -263,6 +274,7 @@ window.addEventListener("load",function(){
     //luồng game
     function animate(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
+        game.isfinish = false;
         game.createMap(ctx)
         game.drawFood(ctx);
 
@@ -270,9 +282,14 @@ window.addEventListener("load",function(){
         // setTimeout(1000/maxSpeed)
         game.update();
         game.checkFoodColision(game);
-
+        game.checkCollision(game)
         // game.player.update()
-        setTimeout(animate,1000/maxSpeed);
+        timer = setTimeout(animate,1000/maxSpeed)
+        if(game.isfinish){
+            clearTimeout(timer);
+            timer =0
+            console.log("end game rồi baby :))))");
+        }
     }
     animate();
     // game.drawMap();
