@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake-Z</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Reggae+One&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            color: blanchedalmond;
+        }
+
+        .body {
+            background: url('https://wallpaperaccess.com/full/759485.jpg');
+            background-repeat: no-repeat;
+            background-size: 100vw;
+            min-height: 100vh;
+            min-width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #logo {
+            width: 120px;
+            height: 120px;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+            border-radius: 80px;
+            position: absolute;
+            top: 20px;
+            left: 25px;
+        }
+
+        #logo img {
+            width: 100px;
+            border-radius: 50px;
+
+        }
+
+        #board {
+            background: linear-gradient(rgb(250, 158, 72), rgb(22, 168, 22));
+            width: 48vw;
+            height: 85vh;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(20, 1fr);
+            border: 5px solid whitesmoke;
+        }
+
+        footer {
+            width: 100vw;
+            text-align: center;
+            background: linear-gradient(grey, white);
+            position: fixed;
+            bottom: 2px;
+            padding: 5px;
+            font-size: 18px;
+            color: black;
+        }
+
+        #scores {
+            position: absolute;
+            top: 70px;
+            right: 100px;
+            font-size: 32px;
+            font-family: 'Reggae One', cursive;
+        }
+
+        #hiscores {
+            position: absolute;
+            top: 130px;
+            right: 100px;
+            font-size: 32px;
+            font-family: 'Reggae One', cursive;
+        }
+
+        .head {
+            /* background: linear-gradient(yellow, white); */
+            background: url('https://cdn.iconscout.com/icon/premium/png-512-thumb/snake-104-757554.png');
+            background-size: cover;
+            background-position: center;
+            /* border: 5px solid wheat; */
+            border-radius: 20px;
+        }
+
+        .foot {
+            background: linear-gradient(rgb(71, 252, 95), rgb(255, 171, 115));
+            border-radius: 20px;
+            border: 5px solid rgb(118, 255, 118);
+        }
+
+        .food {
+            background: linear-gradient(rgb(20, 164, 247), rgb(32, 32, 248));
+            border: 2px solid rgb(73, 72, 72);
+            border-radius: 45px;
+        }
+    </style>
+    <link rel="shortcut icon" href="https://i.pinimg.com/originals/55/fc/fa/55fcfa196027aefc82e36f62a3196412.jpg" type="image/x-icon">
+</head>
+
+<body>
+    <div class="body">
+
+        <div id="logo">
+            <img src="https://i.pinimg.com/originals/55/fc/fa/55fcfa196027aefc82e36f62a3196412.jpg" alt="">
+        </div>
+        <div id="board">
+
+        </div>
+        <div id="scores">Score : 0</div>
+        <div id="hiscores">High-Score : 0</div>
+    </div>
+    <footer>Copyright &copy 2021 Faiyaz Shaikh. All Rights Reserved</footer>
+</body>
+<script type="text/javascript">
+    //Constants and Variables
+    let direction = { x: 0, y: 0 };
+    // const foodSound = new Audio('../Sound/Food.wav');
+    // const moveSound = new Audio('../Sound/Positionchange.wav');
+    // const gameOverSound = new Audio('../Sound/Gameover.wav');
+    let Speed = 8;
+    let LastPaintTime = 0;
+    let SnakeArr = [{ x: 5, y: 6 }]
+    let food = { x: 6, y: 9 };
+    let score = 0;
+
+
+    //Function
+
+    function main(ctime) {
+        //Game Loop
+        //Set the Speed of the Snake
+        window.requestAnimationFrame(main);
+        if ((ctime - LastPaintTime) / 1000 < 1 / Speed) {
+            return;
+        }
+        //Updating the Last Refresh time
+        LastPaintTime = ctime;
+        gameEngine();
+    }
+
+    function isCollide(sarr) {
+        for (let i = 1; i < SnakeArr.length; i++) {
+            if (SnakeArr[i].x === SnakeArr[0].x && SnakeArr[i].y === SnakeArr[0].y) {
+                return true;
+            }
+
+        }
+        // If bump Into Wall
+        if (SnakeArr[0].x >= 20 || SnakeArr[0].x <= 0 || SnakeArr[0].y >= 20 || SnakeArr[0].y <= 0) {
+            return true;
+        }
+    }
+
+    function gameEngine() {
+        //Updating Snake and Food
+        if (isCollide(SnakeArr)) {
+            // gameOverSound.play();
+            direction = { x: 0, y: 0 };
+            alert("GameOver Press Any key to Start Again");
+            score = 0;
+            SnakeArr = [{ x: 5, y: 6 }]
+        }
+
+        //If you have Eaten Food Increment the Score
+        if (SnakeArr[0].y === food.y && SnakeArr[0].x === food.x) {
+            score += 1
+            if (score > hiscoreval) {
+                hiscoreval = score;
+                localStorage.getItem("hiscore", JSON.stringify(hiscoreval));
+                hiscores.innerHTML = "High-Score : " + hiscoreval;
+            }
+            scores.innerHTML = "Score : " + score;
+            SnakeArr.unshift({ x: SnakeArr[0].x + direction.x, y: SnakeArr[0].y + direction.y })
+            let a = 2;
+            let b = 18;
+            food = { x: Math.round(a + (b - a) * Math.random()), y: Math.round(a + (b - a) * Math.random()) }
+        }
+
+        //Moving the Snake
+
+        for (let i = SnakeArr.length - 2; i >= 0; i--) {
+            SnakeArr[i + 1] = { ...SnakeArr[i] };
+        }
+
+        SnakeArr[0].x += direction.x;
+        SnakeArr[0].y += direction.y;
+        //Rendering Snake and Food
+
+        //Display the Snake
+
+        board.innerHTML = "";
+        SnakeArr.forEach((e, index) => {
+            SnakeElement = document.createElement('div');
+            SnakeElement.style.gridRowStart = e.y;
+            SnakeElement.style.gridColumnStart = e.x;
+            if (index === 0) {
+
+                SnakeElement.classList.add('head');
+
+            }
+            else {
+
+                SnakeElement.classList.add('foot')
+
+            }
+            board.appendChild(SnakeElement);
+        });
+
+        //Display the food
+        foodElement = document.createElement('div');
+        foodElement.style.gridRowStart = food.y;
+        foodElement.style.gridColumnStart = food.x;
+        foodElement.classList.add('food');
+        board.appendChild(foodElement);
+    }
+
+    //Logics
+
+    let hiscore = localStorage.getItem("hiscore");
+    if (hiscore === null) {
+        hiscoreval = 0;
+        localStorage.getItem("hiscore", JSON.stringify(hiscoreval));
+
+    }
+    else {
+        hiscoreval = JSON.parse(hiscore);
+        hiscores.innerHTML = "High-Score : " + hiscore;
+    }
+    window.requestAnimationFrame(main);
+    window.addEventListener('keydown', e => {
+        direction = { x: 0, y: 1 } //Start the Game
+        // moveSound.play();
+        switch (e.key) {
+            case "ArrowUp":
+                console.log("ArrowUp")
+                direction.x = 0;
+                direction.y = -1;
+                break;
+            case "ArrowDown":
+                console.log("ArrowDown")
+                direction.x = 0;
+                direction.y = 1;
+                break;
+            case "ArrowLeft":
+                console.log("ArrowLeft")
+                direction.x = -1;
+                direction.y = 0;
+                break;
+            case "ArrowRight":
+                console.log("ArrowRight")
+                direction.x = 1;
+                direction.y = 0;
+                break;
+
+            default:
+                break;
+        }
+    })
+</script>
+
+</html>
