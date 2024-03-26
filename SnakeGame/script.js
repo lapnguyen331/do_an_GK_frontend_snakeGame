@@ -1,13 +1,16 @@
+const hehe= document.querySelector('.score')
+const control = $('.custom-control input')
+console.log(control);
 const blockSize= 30; // khối block -> kích thước part của rắn và map
 const gameWidth=1200; //40 khối theo chiều ngang
 const gameHeight =600;//20 khối theo chiều dọc
+
 const xStep = gameWidth/blockSize;
 const yStep = gameHeight/blockSize;
-this.maxSpeed = 10; //tốc độ di chuyển theo k số block
-this.foodAmmount = 10;
+let maxSpeed = 10; //tốc độ di chuyển theo k số block
+let foodAmmount = 100;
 let tailLength =1; //gồm đầu, chiều dài rắn
-
-
+let time = 100;
 /*
 * giá trị map = 0;
 *giá trị của rắn =1
@@ -37,9 +40,7 @@ window.addEventListener("load",function(){
         constructor(game){
             this.game = game;
             window.addEventListener('keydown',keydown)
-
-        }
-                  
+        }              
     }
     function keydown(e){
         switch(e.key){
@@ -95,8 +96,6 @@ window.addEventListener("load",function(){
         }
         
     }
-    
-
     //người chơi 'snake'
     class Player{
         constructor(game){
@@ -135,7 +134,6 @@ window.addEventListener("load",function(){
                 this.body.shift();// xóa nếu dài hơn tổng chiều dài
             }
             console.log(this.body);
-
         }
 
     }
@@ -185,7 +183,6 @@ window.addEventListener("load",function(){
         drawMap(context){
             context.strokeStyle ='red';
             context.lineWidth = 2; //độ dày viền
-
             for(let i =1; i< xStep-1;i++){
                 // context.strokeRect(i*blockSize,0,blockSize,blockSize) //theo xAsis
                 for(let j =1 ; j< yStep-1; j++){
@@ -227,6 +224,7 @@ window.addEventListener("load",function(){
             game.food.forEach(function (element){
                 if((game.player.headx == element.x) &&(game.player.heady == element.y)){
                     tailLength++;
+                    setDashBoard();
                     element.setLocation(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize);
                 }
             });
@@ -238,6 +236,7 @@ window.addEventListener("load",function(){
                 game.finish();
             }
             // NOTE: kiểm tra cắn body
+            
             //NOTE : kiểm tra đụng tường di động
         }
         // hàm kiểm tra kết thúc game
@@ -259,7 +258,15 @@ window.addEventListener("load",function(){
             return em;
         }
     }
-
+    //function support cập nhật data
+    function setDashBoard(){
+        hehe.innerHTML = 'score:'+tailLength;
+    }
+    // function clear game data
+    function levelUp(game){
+        this.tailLength =2 ;//đầu về đuôi
+    }
+    // hàm random giữa 2 giá trị max min
     function genRandom(min, max){
         return Math.floor(Math.random() * (max - min)) + min;
     }
@@ -285,6 +292,4 @@ window.addEventListener("load",function(){
     }
     animate();
     // game.drawMap();
-   
-
 })
