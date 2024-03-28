@@ -1,16 +1,23 @@
-const hehe= document.querySelector('.score')
+// get element
+const scoreNumber= document.querySelector('.score-num')
 const control = $('.custom-control input')
-console.log(control);
+// console.log(control);
+// config game
 const blockSize= 30; // khối block -> kích thước part của rắn và map
 const gameWidth=1200; //40 khối theo chiều ngang
 const gameHeight =600;//20 khối theo chiều dọc
-
-const xStep = gameWidth/blockSize;
-const yStep = gameHeight/blockSize;
-let maxSpeed = 10; //tốc độ di chuyển theo k số block
-let foodAmmount = 100;
+let gameStatus ={
+    pause:'pause',
+    win:'win',
+    lose:'lose',
+    runing:'runing',
+}
+const xStep = gameWidth/blockSize; //số khối theo chiều x
+const yStep = gameHeight/blockSize; // số khối theo chiều y
+let maxSpeed = 5; //tốc độ di chuyển theo k số block
+let foodAmmount = 100; //số lượng thức ăn trên map
 let tailLength =1; //gồm đầu, chiều dài rắn
-let time = 100;
+let time = 100; //thời gian
 /*
 * giá trị map = 0;
 *giá trị của rắn =1
@@ -74,12 +81,13 @@ window.addEventListener("load",function(){
     // thức ăn
     class Food{
         constructor(x,y){
+            this.image = new Image();
             this.x = x;
             this.y = y;
+            this.image.src='assets/food/mouse.png'
         }
         draw(context){
-            context.fillStyle = "red";
-            context.fillRect(this.x,this.y,blockSize,blockSize);
+            context.drawImage(this.image,this.x,this.y,blockSize,blockSize);
         }
         setLocation(newX,newY){
             this.x=newX;
@@ -87,6 +95,7 @@ window.addEventListener("load",function(){
         }
 
     }
+    //phần cơ thể rắn
     class BodyPart{
         constructor(x,y,index){
             this.x=x;
@@ -100,10 +109,10 @@ window.addEventListener("load",function(){
     class Player{
         constructor(game){
             this.game = game;
-            this.headx =5*blockSize ;//startgame
-            this.heady =5*blockSize;//startgame
-            var em = new BodyPart(this.headx,this.heady,0)
-            this.body =[em];
+            this.headx =5*blockSize ;//vị trí startgame
+            this.heady =5*blockSize;//vị trí  startgame
+            var bodypart = new BodyPart(this.headx,this.heady,0)
+            this.body =[bodypart]; //thêm phần đầu vào
 
             //tốc độ 
             
@@ -133,9 +142,8 @@ window.addEventListener("load",function(){
             if(this.body.length > tailLength){
                 this.body.shift();// xóa nếu dài hơn tổng chiều dài
             }
-            console.log(this.body);
+            // console.log(this.body);
         }
-
     }
     // quân địch
     class Enermy{
@@ -147,6 +155,12 @@ window.addEventListener("load",function(){
     }
     // game background
     class BackGround{
+        constructor(){
+            this.image = new Image();
+            this.image.src = 'assets/background/grass_blur64x64.png';
+            this.snowImage = new Image();
+            this.snowImage.src='assets/background/snow_edge_L.png'
+        }
 
     }
     //draw score , infor, ....
@@ -162,7 +176,8 @@ window.addEventListener("load",function(){
             this.player= new Player(this);
             this.inputHandle = new InputHandle(this);
             this.food = createFood(foodAmmount); // danh sách thức ăn
-            this.isfinish = true;
+            this.status = gameStatus.start;//trạng thái game
+            this.gamebackground = new BackGround(); //background game
         }
         //update UI game
         update(){
@@ -181,14 +196,18 @@ window.addEventListener("load",function(){
         }
        
         drawMap(context){
-            context.strokeStyle ='red';
-            context.lineWidth = 2; //độ dày viền
-            for(let i =1; i< xStep-1;i++){
-                // context.strokeRect(i*blockSize,0,blockSize,blockSize) //theo xAsis
-                for(let j =1 ; j< yStep-1; j++){
-                    context.strokeRect(i*blockSize,j*blockSize,blockSize,blockSize) //theo yAsis
-                }
-            }
+            // -->vẽ grid cho dễ nhìn :>>
+            // context.strokeStyle ='red';
+            // context.lineWidth = 2; //độ dày viền
+            // for(let i =1; i< xStep-1;i++){
+            //     // context.strokeRect(i*blockSize,0,blockSize,blockSize) //theo xAsis
+            //     for(let j =1 ; j< yStep-1; j++){
+            //         context.strokeRect(i*blockSize,j*blockSize,blockSize,blockSize) //theo yAsis
+            //     }
+            // }
+            context.drawImage(this.gamebackground.image,0+blockSize,0+blockSize,gameWidth -blockSize,gameHeight -blockSize);
+            // vẽ thêm tuyết cho đẹp
+            context.drawImage(this.gamebackground.snowImage,40,40,blockSize*5,blockSize*5)
         }
 
         drawBorder(context){
@@ -233,20 +252,17 @@ window.addEventListener("load",function(){
             // kiểm tra đụng border
             var gp = game.player
             if(gp.headx == 0 || gp.headx == (xStep-1)*blockSize || gp.heady == 0 || gp.heady == (yStep-1)*blockSize ){
-                game.finish();
+                game.status=gameStatus.lose; //người chơi thua
             }
             // NOTE: kiểm tra cắn body
             
             //NOTE : kiểm tra đụng tường di động
         }
-        // hàm kiểm tra kết thúc game
-        finish(){
-            this.isfinish= true;
-        }
+       
     }
     
-    const game = new Game(canvas.width,canvas.height);
-    // function hỗ trợ
+    //* function hỗ trợ
+    //tạo food
     function createFood(ammount){ //tạo food
         if(ammount ===1) {
             return [new Food(genRandom(1,xStep-1)*blockSize,genRandom(1,yStep-1)*blockSize)]
@@ -260,7 +276,7 @@ window.addEventListener("load",function(){
     }
     //function support cập nhật data
     function setDashBoard(){
-        hehe.innerHTML = 'score:'+tailLength;
+        scoreNumber.innerHTML = tailLength;
     }
     // function clear game data
     function levelUp(game){
@@ -270,26 +286,44 @@ window.addEventListener("load",function(){
     function genRandom(min, max){
         return Math.floor(Math.random() * (max - min)) + min;
     }
+    const game = new Game(canvas.width,canvas.height);
+
     //luồng game
     function animate(){
+        // kiểm tra trạng thái game
+        switch(game.status){
+            case gameStatus.lose:
+                clearTimeout(timer);
+                timer =0
+                console.log("end game rồi baby :))))");
+                break;
+            case gameStatus.runing:
+                
+                break;
+            case gameStatus.pause:
+                clearTimeout(timer)
+                timer =0
+                console.log('ko clear');
+                break;
+            case gameStatus.win:
+                break;
+        } 
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        game.isfinish = false;
+        game.status = gameStatus.runing;
         game.createMap(ctx)
         game.drawFood(ctx);
 
         game.drawPlayer(ctx);
-        // setTimeout(1000/maxSpeed)
         game.update();
         game.checkFoodColision(game);
         game.checkCollision(game)
-        // game.player.update()
-        timer = setTimeout(animate,1000/maxSpeed)
-        if(game.isfinish){
-            clearTimeout(timer);
-            timer =0
-            console.log("end game rồi baby :))))");
-        }
+        let timer = setTimeout(animate,1000/maxSpeed) //set thời gian chờ call back này
+        
+        // if(scoreNumber.innerHTML ==10){
+        //     console.log('ko');
+        //     game.status = gameStatus.pause
+        // }  
     }
+    
     animate();
-    // game.drawMap();
 })
